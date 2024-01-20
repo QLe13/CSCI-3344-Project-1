@@ -61,7 +61,6 @@ class SearchProblem:
         """
         util.raiseNotDefined()
 
-
 def tinyMazeSearch(problem: SearchProblem):
     """
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
@@ -87,17 +86,41 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
+    start = problem.getStartState()
+    visited = []
+    stack = util.Stack()
+    stack.push((start, []))
+    while not stack.isEmpty():
+        node, path = stack.pop()
+        if problem.isGoalState(node):
+            return path
+        if node not in visited:
+            visited.append(node)
+            for child, action, cost in problem.getSuccessors(node):
+                stack.push((child, path + [action]))
+    return []
+    
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    pass
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    start = problem.getStartState()
+    visited = []
+    pq = util.PriorityQueue()
+    pq.push((start, [], 0), 0)
+    while not pq.isEmpty():
+        node, path, old_cost = pq.pop()
+        if problem.isGoalState(node):
+            return path
+        if node not in visited:
+            visited.append(node)
+            for child, action, cost in problem.getSuccessors(node):
+                pq.push((child, path + [action], old_cost+cost), old_cost+cost)
+    return []
 
 def nullHeuristic(state, problem=None):
     """
@@ -109,7 +132,21 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    start = problem.getStartState()
+    visited = []
+    pq = util.PriorityQueue()
+    hiv = heuristic(start, problem)
+    pq.push((start, [], 0 + hiv), 0+hiv)
+    while not pq.isEmpty():
+        node, path, old_cost = pq.pop()
+        if problem.isGoalState(node):
+            return path
+        if node not in visited:
+            visited.append(node)
+            for child, action, cost in problem.getSuccessors(node):
+                hiv = heuristic(child, problem)
+                pq.push((child, path + [action], old_cost+cost), old_cost+cost+hiv)
+    return []
 
 
 # Abbreviations
