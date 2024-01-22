@@ -19,6 +19,7 @@ Pacman agents (in searchAgents.py).
 
 import util
 
+
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -87,12 +88,28 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # uses QUEUE
+    from util import Queue
+
+    queue = Queue()
+    visited = []
+    queue.push((problem.getStartState(), []))
+
+    while not queue.isEmpty():
+        state, path = queue.pop()
+
+        if problem.isGoalState(state):
+            return path
+        
+        if state not in visited:
+            visited.append(state)
+            for child, direction, cost in problem.getSuccessors(state):
+                queue.push((child, path + [direction]))
+    return []
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
