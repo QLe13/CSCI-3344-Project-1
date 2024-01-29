@@ -288,6 +288,7 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.startingGameState = startingGameState
 
     def getStartState(self):
         """
@@ -295,14 +296,24 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # im returning a tuple because the empty list can hold the visited corner like BfS problem
+        return (self.startingPosition, [])
+        #util.raiseNotDefined()
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        check = state[0] #starting position
+        visitedCorner = state[1] #the [] from above
+
+        if check in self.corners:
+            if not check in visitedCorner:
+                visitedCorner.append(check)
+            return len(visitedCorner) == 4 #since there is 4 corners obv
+        return False
+        #util.raiseNotDefined()
 
     def getSuccessors(self, state):
         """
@@ -316,6 +327,8 @@ class CornersProblem(search.SearchProblem):
         """
 
         successors = []
+        x,y = state[0]
+        visitedCorner = state[1]
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
@@ -325,6 +338,20 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            dx, dy = Actions.directionToVector(action)
+            #to find the next
+            nextX, nextY = int(x+dx), int(y+dy)
+            wallCollision = self.walls[nextX][nextY]
+            
+            if not wallCollision:
+                successorsVisited = list(visitedCorner)
+                next = (nextX, nextY)
+                if next in self.corners:
+                    if not next in successorsVisited:
+                        successorsVisited.append(next)
+                successor = ((next, successorsVisited), action, 1)
+                successors.append(successor)
+
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
