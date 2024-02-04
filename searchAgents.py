@@ -394,7 +394,6 @@ def cornersHeuristic(state, problem):
 
     # Compute the Manhattan distance to the closest unvisited corner
     distances = [util.manhattanDistance((x, y), corner) for corner in unvisited]
-    print(distances)
     min_distance = min(distances)
     closest_corner = unvisited[distances.index(min_distance)]
     heuristic_cost = min_distance
@@ -408,7 +407,7 @@ def cornersHeuristic(state, problem):
         closest_corner = remaining_corners[next_distances.index(closest_distance)]
         heuristic_cost += closest_distance
         remaining_corners.remove(closest_corner)
-
+    #print(heuristic_cost)
     return heuristic_cost
 
 class AStarCornersAgent(SearchAgent):
@@ -474,36 +473,122 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchType = FoodSearchProblem
 
 def foodHeuristic(state, problem):
-    """
-    Your heuristic for the FoodSearchProblem goes here.
-
-    This heuristic must be consistent to ensure correctness.  First, try to come
-    up with an admissible heuristic; almost all admissible heuristics will be
-    consistent as well.
-
-    If using A* ever finds a solution that is worse uniform cost search finds,
-    your heuristic is *not* consistent, and probably not admissible!  On the
-    other hand, inadmissible or inconsistent heuristics may find optimal
-    solutions, so be careful.
-
-    The state is a tuple ( pacmanPosition, foodGrid ) where foodGrid is a Grid
-    (see game.py) of either True or False. You can call foodGrid.asList() to get
-    a list of food coordinates instead.
-
-    If you want access to info like walls, capsules, etc., you can query the
-    problem.  For example, problem.walls gives you a Grid of where the walls
-    are.
-
-    If you want to *store* information to be reused in other calls to the
-    heuristic, there is a dictionary called problem.heuristicInfo that you can
-    use. For example, if you only want to count the walls once and store that
-    value, try: problem.heuristicInfo['wallCount'] = problem.walls.count()
-    Subsequent calls to this heuristic can access
-    problem.heuristicInfo['wallCount']
-    """
     position, foodGrid = state
+    maxDistance = 0
+
+    # Iterate over all food positions in the foodGrid
+    for food in foodGrid.asList():
+        # Use any distance measure, like Manhattan distance (for grid-based problems)
+        dist = util.manhattanDistance(position, food) 
+        # Update maxDistance if this food is further away
+        maxDistance = max(maxDistance, dist)
+
+    return maxDistance
+"""
+def foodHeuristic(state, problem):
+    position, foodGrid = state
+    def foodClusters(foodGrid):
+        copyFoodGrid = foodGrid.deepCopy()
+        clusters = []
+        for x in range(copyFoodGrid.width):
+            for y in range(copyFoodGrid.height):
+                if copyFoodGrid[x][y]:
+                    q = util.Queue()
+                    q.push((x, y))
+                    sum_n = 0
+                    while not q.isEmpty():
+                        current = q.pop()
+                        sum_n += 1
+                        copyFoodGrid[current[0]][current[1]] = False
+                        for dx, dy in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
+                            next = (current[0] + dx, current[1] + dy)
+                            if next[0] >= 0 and next[0] < copyFoodGrid.width and next[1] >= 0 and next[1] < copyFoodGrid.height:
+                                if copyFoodGrid[next[0]][next[1]] and next not in clusters:
+                                    q.push(next)
+                    clusters.append(((x, y), sum_n))
+
+        return clusters
+    
+    
+    clusters = foodClusters(foodGrid)
+
+    (x, y) = state[0]  # Current position in the maze
+    unvisited = [(corner, cost) for corner, cost in clusters if corner not in state[1]]
+
+    if not unvisited:
+        return 0
+
+    # Compute the Manhattan distance to the closest unvisited corner
+    distances = [util.manhattanDistance((x, y), corner) for corner, cost in unvisited]
+    min_distance = min(distances)
+    closest_corner, cost = unvisited[distances.index(min_distance)]
+    heuristic_cost = min_distance + cost
+
+    # Estimate the cost to visit the remaining corners
+    remaining_corners = unvisited[:]
+    remaining_corners.remove((closest_corner, cost))
+    while remaining_corners:
+        next_distances = [util.manhattanDistance(closest_corner, corner) for corner, cost in remaining_corners]
+        closest_distance = min(next_distances)
+        closest_corner, cost = remaining_corners[next_distances.index(closest_distance)]
+        heuristic_cost += closest_distance + cost
+        remaining_corners.remove((closest_corner, cost))
+    #print(heuristic_cost)
+
     "*** YOUR CODE HERE ***"
-    return 0
+    return heuristic_cost
+"""
+"""
+def foodHeuristic(state, problem):
+    position, foodGrid = state
+    foodList = foodGrid.asList()
+
+    if not foodList:
+        return 0
+
+    # Create a graph of food points
+    graph = buildGraph(foodList)
+
+    # Compute the MST for the food points
+    mstCost = computeMSTCost(graph, position)
+
+    return mstCost
+
+def buildGraph(foodList):
+    graph = {}
+    for food in foodList:
+        for other in foodList:
+            if food != other:
+                if food not in graph:
+                    graph[food] = []
+                distance = util.manhattanDistance(food, other)  # or any other appropriate distance measure
+                graph[food].append((other, distance))
+    return graph
+
+
+import heapq
+
+def computeMSTCost(graph, startPosition):
+    # Initialize variables
+    mstCost = 0
+    visited = set()
+    edges = [(0, startPosition)]
+
+    while edges:
+        cost, node = heapq.heappop(edges)
+        if node not in visited:
+            visited.add(node)
+            mstCost += cost
+
+            for neighbor, weight in graph.get(node, []):
+                if neighbor not in visited:
+                    heapq.heappush(edges, (weight, neighbor))
+
+    return mstCost
+"""
+
+
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
