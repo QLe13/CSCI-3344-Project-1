@@ -471,19 +471,69 @@ class AStarFoodSearchAgent(SearchAgent):
     def __init__(self):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
+"""
+import util
 
 def foodHeuristic(state, problem):
     position, foodGrid = state
-    maxDistance = 0
+    foodList = foodGrid.asList()
 
-    # Iterate over all food positions in the foodGrid
-    for food in foodGrid.asList():
-        # Use any distance measure, like Manhattan distance (for grid-based problems)
-        dist = util.manhattanDistance(position, food) 
-        # Update maxDistance if this food is further away
-        maxDistance = max(maxDistance, dist)
+    if not foodList:
+        return 0
 
-    return maxDistance
+    closest_food_distance = min([mazeDistance(position, food, problem.startingGameState) for food in foodList])
+    furthest_food_distance = max([mazeDistance(position, food, problem.startingGameState) for food in foodList])
+    mst_cost = calculateMSTCost(position, foodList, problem.startingGameState)
+
+    return closest_food_distance + furthest_food_distance + mst_cost
+
+def calculateMSTCost(start, points, gameState):
+    if not points:
+        return 0
+
+    # Prim's algorithm
+    mst_cost = 0
+    visited = set()
+    pq = util.PriorityQueue()
+    pq.push((start, 0), 0)
+
+    while not pq.isEmpty():
+        current_point, cost = pq.pop()
+
+        if current_point in visited:
+            continue
+
+        visited.add(current_point)
+        mst_cost += cost
+
+        if len(visited) == len(points) + 1:  # +1 for the start point
+            break
+
+        for point in points:
+            if point not in visited:
+                distance = mazeDistance(current_point, point, gameState)
+                pq.push((point, distance), distance)
+
+    return mst_cost
+"""
+
+def foodHeuristic(state, problem):
+    position, foodGrid = state
+    foodList = foodGrid.asList()
+
+    if not foodList:
+        return 0
+
+    # Closest food dot
+    closest_food_distance = min([mazeDistance(position, food, problem.startingGameState) for food in foodList])
+    closest_food = min(foodList, key=lambda food: mazeDistance(position, food, problem.startingGameState))
+
+    # Furthest food dot from the closest food
+    furthest_from_closest_distance = max([mazeDistance(closest_food, food, problem.startingGameState) for food in foodList])
+
+    return closest_food_distance + furthest_from_closest_distance
+
+
 """
 def foodHeuristic(state, problem):
     position, foodGrid = state
@@ -587,9 +637,6 @@ def computeMSTCost(graph, startPosition):
     return mstCost
 """
 
-
-
-
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
     def registerInitialState(self, state):
@@ -618,8 +665,9 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return search.bfs(problem)
+
+        
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -653,9 +701,9 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         complete the problem definition.
         """
         x,y = state
+        return self.food[x][y]
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        
 
 def mazeDistance(point1, point2, gameState):
     """
